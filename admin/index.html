@@ -10,10 +10,125 @@ hide_image: false
 cover: true
 ---
 
-<div class="category-filter">
-  <a href="/" class="btn btn-primary">All</a>
-  <a href="/category/whs/" class="btn">WHS</a>
-  <a href="/category/blockchain/" class="btn">Blockchain</a>
-  <a href="/category/cs/" class="btn">CS</a>
-  <a href="/category/project/" class="btn">Project</a>
-</div>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>블로그 글쓰기</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 2rem auto; padding: 1rem; }
+    input, select, textarea { width: 100%; padding: 0.5rem; margin: 0.4rem 0 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    textarea { height: 300px; font-family: monospace; }
+    button { padding: 0.6rem 1.5rem; background: #4FB1BA; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #3a9aa3; }
+    #status { margin-top: 1rem; padding: 0.8rem; border-radius: 4px; display: none; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    label { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>✍️ 블로그 글쓰기</h1>
+
+  <div id="token-section">
+    <label>GitHub Personal Access Token</label>
+    <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx">
+    <small>처음 한 번만 입력하면 브라우저에 저장돼요. <a href="https://github.com/settings/tokens/new?scopes=repo" target="_blank">토큰 발급받기</a></small>
+    <br><br>
+  </div>
+
+  <label>제목</label>
+  <input type="text" id="title" placeholder="글 제목">
+
+  <label>카테고리</label>
+  <select id="category">
+    <option value="whs">WHS</option>
+    <option value="blockchain">Blockchain</option>
+    <option value="cs">CS</option>
+    <option value="project">Project</option>
+  </select>
+
+  <label>설명 (한 줄 요약)</label>
+  <input type="text" id="description" placeholder="짧은 설명">
+
+  <label>내용 (Markdown)</label>
+  <textarea id="content" placeholder="여기에 마크다운으로 글을 써주세요..."></textarea>
+
+  <button onclick="publish()">🚀 발행하기</button>
+  <div id="status"></div>
+
+  <script>
+    const REPO = 'wonearth/JiwonKoo.github.io';
+
+    window.onload = function() {
+      var saved = localStorage.getItem('gh_token');
+      if (saved) document.getElementById('token').value = saved;
+    };
+
+    async function publish() {
+      var token = document.getElementById('token').value.trim();
+      var title = document.getElementById('title').value.trim();
+      var category = document.getElementById('category').value;
+      var description = document.getElementById('description').value.trim();
+      var content = document.getElementById('content').value.trim();
+
+      if (!token || !title || !content) {
+        showStatus('토큰, 제목, 내용은 필수예요!', 'error');
+        return;
+      }
+
+      localStorage.setItem('gh_token', token);
+
+      var today = new Date();
+      var date = today.toISOString().split('T')[0];
+      var slug = title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-');
+      var filename = '_posts/' + date + '-' + encodeURIComponent(slug) + '.md';
+
+      var frontmatter = `---
+layout: post
+title: ${title}
+date: ${date}
+description: ${description}
+categories: [${category}]
+---
+
+${content}`;
+
+      var encoded = btoa(unescape(encodeURIComponent(frontmatter)));
+
+      try {
+        var res = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + filename, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'token ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: 'Add post: ' + title,
+            content: encoded
+          })
+        });
+
+        if (res.ok) {
+          showStatus('✅ 글이 발행됐어요! 1~2분 후 블로그에 반영돼요.', 'success');
+          document.getElementById('title').value = '';
+          document.getElementById('content').value = '';
+          document.getElementById('description').value = '';
+        } else {
+          var err = await res.json();
+          showStatus('❌ 오류: ' + err.message, 'error');
+        }
+      } catch(e) {
+        showStatus('❌ 네트워크 오류: ' + e.message, 'error');
+      }
+    }
+
+    function showStatus(msg, type) {
+      var el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = type;
+      el.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
