@@ -422,3 +422,8 @@ jekyll_compose:
       links:
         - title: Project Link
           url: https://example.com
+
+exclude:
+  - example/
+  - vendor/
+  - node_modules/
