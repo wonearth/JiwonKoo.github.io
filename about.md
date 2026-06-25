@@ -10,8 +10,8 @@ title: About
 Ewha Womans University  
 B.S. in Computer Science Engineering & Cyber Security 
 
-📧 jeewon514@gmail.com  
-📝 [Velog](https://velog.io/@wonearth)
+[![Email](https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white)](mailto:jeewon514@gmail.com)    
+[![Velog](https://img.shields.io/badge/Velog-20C997?style=for-the-badge&logo=velog&logoColor=white)](https://velog.io/@jeewon514/posts)
 
 ---
 
