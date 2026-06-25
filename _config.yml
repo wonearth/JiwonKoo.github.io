@@ -56,6 +56,7 @@ kramdown:
   math_engine:         mathjax
   math_engine_opts:    {}
   footnote_backlink:   '&#x21a9;&#xfe0e;'
+  input:               GFM
 
 hydejack:
   post_addons:         [about, related, random, comments]
