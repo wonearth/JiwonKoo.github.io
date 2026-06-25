@@ -2,8 +2,10 @@
 # Must be the same as `author` in `_config.yml`.
 # Change `author1` to your shortname.
 author1:
-  name:              <firstname> <lastname>
-  email:             <mail@domain.tld>
+  name:              Jiwon Koo
+  email:             jeewon514@gmail.com
+  about:             |
+    Computer Engineering & Cybersecurity @ Ewha Womans University
 
   # Used at the bottom of each page and at the top of the `about` layout
   # Markdown enabled, can use multiple paragraphs (enabled by `|`)
@@ -27,8 +29,13 @@ author1:
   # Rearrange to change the order in which they appear
   # You can also provide an absolute URL (starting with https://) instead of usernames
   social:
-    twitter:         <username>
-    github:          <username>
+    twitter:         0x_wonearth
+    github:          wonearth
+    email:           jeewon514@gmail.com
+    velog:
+      title:         Velog
+      url:           https://velog.io/@jeewon514/posts
+    
     # email:           <mail@domain.tld>
     # rss:             https://<url>/feed.xml
     # facebook:        <username>
