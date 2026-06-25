@@ -1,0 +1,30 @@
+backend:
+  name: github
+  repo: wonearth/JiwonKoo.github.io
+  branch: master
+
+media_folder: assets/img/blog
+public_folder: /assets/img/blog
+
+collections:
+  - name: posts
+    label: 블로그 포스트
+    folder: _posts
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: 제목, name: title, widget: string }
+      - { label: 날짜, name: date, widget: datetime }
+      - { label: 설명, name: description, widget: string, required: false }
+      - label: 카테고리
+        name: categories
+        widget: select
+        multiple: true
+        options:
+          - { label: WHS, value: whs }
+          - { label: Blockchain, value: blockchain }
+          - { label: CS, value: cs }
+          - { label: Project, value: project }
+      - { label: 본문, name: body, widget: markdown }
+    meta:
+      - { label: Layout, name: layout, widget: hidden, default: post }
