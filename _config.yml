@@ -2,7 +2,7 @@ lang:                  en
 title:                 Jiwon Koo
 description:           >
   블록체인과 보안을 공부하며 기록합니다.
-tagline:               Blockchain & Security Developer
+tagline:               Computer Engineering & Security Developer
 keywords:              [blockchain, security, developer]
 logo:                  /assets/img/logo.png
 
@@ -14,15 +14,8 @@ menu:
   - title:             About
     url:               /about/
 
-legal:
-  - title:             LICENSE
-    url:               /LICENSE/
-  - title:             NOTICE
-    url:               /NOTICE/
-  - title:             CHANGELOG
-    url:               /CHANGELOG/
 
-copyright:             © 2026. All rights reserved.
+copyright:             © 2026 Jiwon Koo. All rights reserved.
 permalink:             /:categories/:year-:month-:day-:title/
 paginate:              10
 paginate_path:         /:num/
