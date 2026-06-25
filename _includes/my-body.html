@@ -1,12 +1,24 @@
-{% if page.url == '/JiwonKoo.github.io/' or page.url == '/' %}
-<div style="text-align:center; margin: 1rem 0 2rem;">
-  <a href="/JiwonKoo.github.io/" style="display:inline-block; padding:0.4rem 1.2rem; margin:0.2rem; border:2px solid #555; border-radius:20px; text-decoration:none; color:#555;">All</a>
-  <a href="/JiwonKoo.github.io/category/whs/" style="display:inline-block; padding:0.4rem 1.2rem; margin:0.2rem; border:2px solid #555; border-radius:20px; text-decoration:none; color:#555;">WHS</a>
-  <a href="/JiwonKoo.github.io/category/blockchain/" style="display:inline-block; padding:0.4rem 1.2rem; margin:0.2rem; border:2px solid #555; border-radius:20px; text-decoration:none; color:#555;">Blockchain</a>
-  <a href="/JiwonKoo.github.io/category/cs/" style="display:inline-block; padding:0.4rem 1.2rem; margin:0.2rem; border:2px solid #555; border-radius:20px; text-decoration:none; color:#555;">CS</a>
-  <a href="/JiwonKoo.github.io/category/project/" style="display:inline-block; padding:0.4rem 1.2rem; margin:0.2rem; border:2px solid #555; border-radius:20px; text-decoration:none; color:#555;">Project</a>
-</div>
-{% endif %}
+<script>
+  function injectCategoryButtons() {
+    if (document.querySelector('.category-buttons')) return;
+    var content = document.querySelector('.page > .content, #_main .content, .page__content');
+    if (!content) return;
+    var div = document.createElement('div');
+    div.className = 'category-buttons';
+    div.style.cssText = 'text-align:center; margin: 1rem 0 2rem;';
+    div.innerHTML = `
+      <a href="/JiwonKoo.github.io/" style="display:inline-block;padding:0.4rem 1.2rem;margin:0.2rem;border:2px solid #555;border-radius:20px;text-decoration:none;color:#555;">All</a>
+      <a href="/JiwonKoo.github.io/category/whs/" style="display:inline-block;padding:0.4rem 1.2rem;margin:0.2rem;border:2px solid #555;border-radius:20px;text-decoration:none;color:#555;">WHS</a>
+      <a href="/JiwonKoo.github.io/category/blockchain/" style="display:inline-block;padding:0.4rem 1.2rem;margin:0.2rem;border:2px solid #555;border-radius:20px;text-decoration:none;color:#555;">Blockchain</a>
+      <a href="/JiwonKoo.github.io/category/cs/" style="display:inline-block;padding:0.4rem 1.2rem;margin:0.2rem;border:2px solid #555;border-radius:20px;text-decoration:none;color:#555;">CS</a>
+      <a href="/JiwonKoo.github.io/category/project/" style="display:inline-block;padding:0.4rem 1.2rem;margin:0.2rem;border:2px solid #555;border-radius:20px;text-decoration:none;color:#555;">Project</a>
+    `;
+    content.insertBefore(div, content.firstChild);
+  }
+
+  document.addEventListener('DOMContentLoaded', injectCategoryButtons);
+  document.getElementById('_pushState') && document.getElementById('_pushState').addEventListener('hy-push-state-after', injectCategoryButtons);
+</script>
 <!--
 Code for integrating CloudFlare's email protection with Hydejack's single page app loading.
 -->
