@@ -19,9 +19,9 @@ B.S. in Computer Science Engineering & Cyber Security
 
 개발과 보안 두 가지를 함께 공부하면서, 단순히 동작하는 코드가 아니라 안전하고 견고한 코드를 짜는 개발자가 되고 싶다는 목표가 생겼습니다. 최근에는 블록체인에 관심이 생겨 조금씩 공부를 시작했습니다. 
 
-이 블로그는 저의 성장 아카이브이자 포트폴리오 역할을 하는 공간입니다. 단순한 코드 나열이 아닌 왜, 어떻게에 집중해 깊이 있는 글을 추구합니다. 아직 배워가는 중이지만, 이 기록들이 쌓여 성장의 흔적이 되었으면 좋겠습니다. 
+이 블로그는 저의 성장 아카이브이자 포트폴리오 역할을 하는 공간입니다. 단순한 코드 나열이 아닌 왜, 어떻게에 집중해 깊이 있는 글을 추구합니다. 아직 배워가는 중이지만, 이 기록들이 쌓여 성장의 흔적이 되었으면 좋겠습니다.  
 
-</br>
+<br>
 
 Hi, I'm Jiwon Koo, a double major in Computer Engineering and Cybersecurity at Ewha Womans University.
 
@@ -51,7 +51,7 @@ Community-based resale platform for Ewha students
   
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/Cloud9999999999/EwhaMarket)
 
-</br>
+<br>
 
 **SyncMe**
 
@@ -61,7 +61,7 @@ Schedule Management and Character Growth Platform
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/ECC-2025-SyncMe/syncme-frontend)   [![Live](https://img.shields.io/badge/Live-000000?style=flat&logo=vercel&logoColor=white)](syncme-frontend.vercel.app)
 
-</br>
+<br>
 
 **한 발짝 (One Step)**  
 
