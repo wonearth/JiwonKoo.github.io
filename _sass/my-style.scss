@@ -1,14 +1,25 @@
-.dl-table {
-  a {
-    @supports ((text-decoration-thickness: initial) and (text-underline-offset: initial)) {
-      text-underline-offset: .8rem;
+.category-filter {
+  text-align: center;
+  margin: 1rem 0 2rem;
+  
+  .btn {
+    display: inline-block;
+    padding: 0.4rem 1.2rem;
+    margin: 0.2rem;
+    border: 2px solid #333;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+    
+    &:hover {
+      background: #333;
+      color: #fff;
     }
-    @supports not ((text-decoration-thickness: initial) and (text-underline-offset: initial)) {
-      padding-bottom: .45rem;
+    
+    &.btn-primary {
+      background: #7B2FBE;
+      border-color: #7B2FBE;
+      color: #fff;
     }
-  }
-
-  .btn, .gumroad-button  {
-    margin: 1rem 0;
   }
 }
