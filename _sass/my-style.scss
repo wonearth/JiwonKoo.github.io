@@ -25,6 +25,6 @@
 }
 
 
-.page-footer, [class*="powered"] {
-  display: none !important;
-}
+.page-footer { display: none !important; }
+footer.page-footer { display: none !important; }
+[class*="copyright"] { display: none !important; }
