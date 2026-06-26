@@ -8,7 +8,7 @@
     background:#4FB1BA; color:#fff; border:none; border-radius:50px;
     padding:0.8rem 1.4rem; font-size:1rem; cursor:pointer;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    display:none;
+    display:block;
   }
   .float-write-btn:hover { background:#3a9aa3; transform:scale(1.05); }
 
@@ -16,17 +16,14 @@
   .modal-overlay.open { display:flex; align-items:center; justify-content:center; }
   .modal { background:#fff; border-radius:12px; padding:2rem; width:95%; max-width:1100px; height:90vh; display:flex; flex-direction:column; }
   .modal h2 { margin:0 0 1rem; color:#333; }
-
   .modal-top { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
   .modal-top input, .modal-top select { padding:0.5rem; border:1px solid #ddd; border-radius:6px; font-size:0.95rem; }
   .modal-top .m-title-input { flex:2; min-width:200px; }
   .modal-top select { flex:1; min-width:120px; }
   .modal-top .m-desc-input { flex:2; min-width:200px; }
-
   .token-row { display:flex; gap:0.5rem; align-items:center; margin-bottom:1rem; }
   .token-row input { flex:1; padding:0.5rem; border:1px solid #ddd; border-radius:6px; font-size:0.95rem; }
   .token-toggle { padding:0.5rem 0.8rem; background:#eee; border:none; border-radius:6px; cursor:pointer; }
-
   .editor-area { display:flex; gap:1rem; flex:1; overflow:hidden; }
   .editor-pane, .preview-pane { flex:1; display:flex; flex-direction:column; overflow:hidden; }
   .editor-pane label, .preview-pane label { font-weight:bold; color:#555; font-size:0.85rem; margin-bottom:0.4rem; display:block; }
@@ -37,7 +34,6 @@
   .preview-box pre { background:#f4f4f4; padding:1rem; border-radius:6px; overflow-x:auto; }
   .preview-box pre code { background:none; padding:0; }
   .preview-box blockquote { border-left:4px solid #4FB1BA; margin:0; padding-left:1rem; color:#666; }
-
   .modal-actions { display:flex; gap:0.5rem; margin-top:1rem; }
   .btn-publish { flex:1; padding:0.6rem; background:#4FB1BA; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer; }
   .btn-publish:hover { background:#3a9aa3; }
@@ -52,12 +48,10 @@
 <div class="modal-overlay" id="writeModal">
   <div class="modal">
     <h2>✍️ 새 글 쓰기</h2>
-
     <div class="token-row">
       <input type="password" id="m-token" placeholder="GitHub Token (처음 한 번만 입력)">
       <button class="token-toggle" onclick="toggleToken()">👁</button>
     </div>
-
     <div class="modal-top">
       <input class="m-title-input" type="text" id="m-title" placeholder="글 제목">
       <select id="m-category">
@@ -68,18 +62,16 @@
       </select>
       <input class="m-desc-input" type="text" id="m-desc" placeholder="한 줄 설명">
     </div>
-
     <div class="editor-area">
       <div class="editor-pane">
         <label>✏️ 마크다운 작성</label>
-        <textarea id="m-content" placeholder="# 제목&#10;&#10;내용을 입력하세요...&#10;&#10;**볼드** *이탤릭*&#10;&#10;```&#10;코드블록&#10;```"></textarea>
+        <textarea id="m-content" placeholder="# 제목&#10;&#10;내용을 입력하세요..."></textarea>
       </div>
       <div class="preview-pane">
         <label>👁 미리보기</label>
         <div class="preview-box" id="m-preview"></div>
       </div>
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">취소</button>
       <button class="btn-publish" onclick="publishPost()">🚀 발행하기</button>
@@ -92,24 +84,22 @@
 <script>
   const REPO = 'wonearth/JiwonKoo.github.io';
 
-  // 키보드 이벤트 가로채기 방지
   document.getElementById('writeModal').addEventListener('keydown', function(e) {
     e.stopPropagation();
   });
 
-  // 토큰 있을 때만 버튼 표시
-  function checkToken() {
-    var saved = localStorage.getItem('gh_token');
-    var btn = document.getElementById('floatWriteBtn');
-    if (btn) {
-      btn.style.display = saved ? 'block' : 'none';
-      if (saved) document.getElementById('m-token').value = saved;
-    }
-  }
+  document.getElementById('m-content').addEventListener('input', function() {
+    document.getElementById('m-preview').innerHTML = marked.parse(this.value);
+  });
 
   function injectUI() {
     if (document.querySelector('.cat-buttons')) return;
-    var target = document.querySelector('article') || document.querySelector('.page > .content');
+
+    var target = document.querySelector('article')
+              || document.querySelector('.page > .content')
+              || document.querySelector('.content')
+              || document.querySelector('#_main')
+              || document.querySelector('main');
     if (!target) return;
 
     var currentPath = window.location.pathname;
@@ -134,12 +124,10 @@
     });
 
     target.parentNode.insertBefore(catDiv, target);
-    checkToken();
-  }
 
-  document.getElementById('m-content').addEventListener('input', function() {
-    document.getElementById('m-preview').innerHTML = marked.parse(this.value);
-  });
+    var saved = localStorage.getItem('gh_token');
+    if (saved) document.getElementById('m-token').value = saved;
+  }
 
   function openModal() { document.getElementById('writeModal').classList.add('open'); }
   function closeModal() { document.getElementById('writeModal').classList.remove('open'); }
@@ -158,9 +146,7 @@
     if (!token || !title || !content) {
       showStatus('토큰, 제목, 내용은 필수예요!', 'error'); return;
     }
-
     localStorage.setItem('gh_token', token);
-    checkToken();
 
     var date = new Date().toISOString().split('T')[0];
     var slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
@@ -174,7 +160,6 @@
         headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: 'Add post: ' + title, content: encoded })
       });
-
       if (res.ok) {
         showStatus('✅ 발행 완료! 1~2분 후 블로그에 반영돼요.', 'success');
         document.getElementById('m-title').value = '';
