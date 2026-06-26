@@ -23,3 +23,8 @@
     }
   }
 }
+
+
+.page-footer, [class*="powered"] {
+  display: none !important;
+}
