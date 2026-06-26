@@ -84,6 +84,22 @@
     document.getElementById('m-preview').innerHTML = marked.parse(this.value);
   });
 
+  function hideHydejack() {
+    document.querySelectorAll('a, p').forEach(function(el) {
+      if (el.textContent.includes('Hydejack')) {
+        el.style.display = 'none';
+      }
+    });
+    // hr 구분선도 제거 (Powered by 앞뒤에 있는 것)
+    var hrs = document.querySelectorAll('hr');
+    hrs.forEach(function(hr) {
+      var next = hr.nextElementSibling;
+      if (next && next.textContent.includes('Hydejack')) {
+        hr.style.display = 'none';
+      }
+    });
+  }
+
   function injectUI() {
     if (document.querySelector('.cat-buttons')) return;
     var target = document.querySelector('article')
@@ -121,18 +137,15 @@
   }
 
   function handlePage() {
-    var isAbout = window.location.pathname.includes('/about');
+    var isAbout = window.location.pathname.indexOf('/about') !== -1;
     var btn = document.getElementById('floatWriteBtn');
     if (btn) btn.style.display = isAbout ? 'none' : 'block';
 
-    document.querySelectorAll('a').forEach(function(a) {
-      if (a.textContent.includes('Hydejack')) {
-        a.style.display = 'none';
-        if (a.parentElement) a.parentElement.style.display = 'none';
-      }
-    });
-
-    if (!isAbout) injectUI();
+    // 딜레이 주어서 동적 컨텐츠 로드 후 실행
+    setTimeout(function() {
+      hideHydejack();
+      if (!isAbout) injectUI();
+    }, 300);
   }
 
   function openModal() { document.getElementById('writeModal').classList.add('open'); }
