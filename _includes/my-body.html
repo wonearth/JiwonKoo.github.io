@@ -2,7 +2,7 @@
   .cat-buttons { text-align:center; padding: 0.8rem 0 1.2rem; margin-bottom: 1.5rem; }
   .cat-btn { display:inline-block; padding:0.3rem 1rem; margin:0.2rem; border:1px solid #4FB1BA; border-radius:6px; text-decoration:none; font-size:0.9rem; cursor:pointer; background:transparent; color:#4FB1BA; }
   .cat-btn.active { background:#4FB1BA; color:#fff; }
-  .float-write-btn { position:fixed; bottom:2rem; right:2rem; z-index:1000; background:#4FB1BA; color:#fff; border:none; border-radius:50px; padding:0.8rem 1.4rem; font-size:1rem; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  .float-write-btn { position:fixed; bottom:2rem; right:2rem; z-index:1000; background:#4FB1BA; color:#fff; border:none; border-radius:50px; padding:0.8rem 1.4rem; font-size:1rem; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); display:none; }
   .float-write-btn:hover { background:#3a9aa3; }
   .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; }
   .modal-overlay.open { display:flex; align-items:center; justify-content:center; }
@@ -158,7 +158,8 @@ function handlePage() {
   var isAbout = path.indexOf('/about') !== -1;
   var btn = document.getElementById('floatWriteBtn');
 
-  if (btn) btn.style.display = isAbout ? 'none' : 'block';
+  var hasToken = localStorage.getItem('gh_token');
+  if (btn) btn.style.display = (isAbout || !hasToken) ? 'none' : 'block';
 
   hidePoweredBy();
 
