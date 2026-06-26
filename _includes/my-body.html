@@ -1,12 +1,94 @@
+<style>
+  .cat-buttons { text-align:center; padding: 0.8rem 0 1.2rem; margin-bottom: 1.5rem; }
+  .cat-btn { display:inline-block; padding:0.3rem 1rem; margin:0.2rem; border:1px solid #4FB1BA; border-radius:6px; text-decoration:none; font-size:0.9rem; cursor:pointer; background:transparent; color:#4FB1BA; }
+  .cat-btn.active { background:#4FB1BA; color:#fff; }
+  .write-btn { display:block; margin: 0 auto 2rem; padding: 0.5rem 1.5rem; background:#4FB1BA; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer; }
+  .write-btn:hover { background:#3a9aa3; }
+
+  .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; }
+  .modal-overlay.open { display:flex; align-items:center; justify-content:center; }
+  .modal { background:#fff; border-radius:12px; padding:2rem; width:95%; max-width:1100px; height:90vh; display:flex; flex-direction:column; }
+  .modal h2 { margin:0 0 1rem; color:#333; }
+
+  .modal-top { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .modal-top input, .modal-top select { padding:0.5rem; border:1px solid #ddd; border-radius:6px; font-size:0.95rem; }
+  .modal-top .m-title-input { flex:2; min-width:200px; }
+  .modal-top select { flex:1; min-width:120px; }
+  .modal-top .m-desc-input { flex:2; min-width:200px; }
+
+  .token-row { display:flex; gap:0.5rem; align-items:center; margin-bottom:1rem; }
+  .token-row input { flex:1; padding:0.5rem; border:1px solid #ddd; border-radius:6px; font-size:0.95rem; }
+  .token-toggle { padding:0.5rem 0.8rem; background:#eee; border:none; border-radius:6px; cursor:pointer; }
+
+  .editor-area { display:flex; gap:1rem; flex:1; overflow:hidden; }
+  .editor-pane, .preview-pane { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .editor-pane label, .preview-pane label { font-weight:bold; color:#555; font-size:0.85rem; margin-bottom:0.4rem; display:block; }
+  .editor-pane textarea { flex:1; padding:0.8rem; border:1px solid #ddd; border-radius:6px; font-family:monospace; font-size:0.9rem; resize:none; line-height:1.6; }
+  .preview-pane .preview-box { flex:1; padding:0.8rem; border:1px solid #ddd; border-radius:6px; overflow-y:auto; line-height:1.7; font-size:0.95rem; }
+  .preview-box h1,.preview-box h2,.preview-box h3 { border-bottom:1px solid #eee; padding-bottom:0.3rem; }
+  .preview-box code { background:#f4f4f4; padding:0.1rem 0.4rem; border-radius:3px; font-size:0.85rem; }
+  .preview-box pre { background:#f4f4f4; padding:1rem; border-radius:6px; overflow-x:auto; }
+  .preview-box pre code { background:none; padding:0; }
+  .preview-box blockquote { border-left:4px solid #4FB1BA; margin:0; padding-left:1rem; color:#666; }
+
+  .modal-actions { display:flex; gap:0.5rem; margin-top:1rem; }
+  .btn-publish { flex:1; padding:0.6rem; background:#4FB1BA; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer; }
+  .btn-publish:hover { background:#3a9aa3; }
+  .btn-cancel { padding:0.6rem 1rem; background:#eee; color:#555; border:none; border-radius:6px; font-size:1rem; cursor:pointer; }
+  .modal-status { margin-top:0.5rem; padding:0.7rem; border-radius:6px; display:none; font-size:0.9rem; }
+  .modal-status.success { background:#d4edda; color:#155724; display:block; }
+  .modal-status.error { background:#f8d7da; color:#721c24; display:block; }
+</style>
+
+<div class="modal-overlay" id="writeModal">
+  <div class="modal">
+    <h2>✍️ 새 글 쓰기</h2>
+
+    <div class="token-row">
+      <input type="password" id="m-token" placeholder="GitHub Token (처음 한 번만 입력)">
+      <button class="token-toggle" onclick="toggleToken()">👁</button>
+    </div>
+
+    <div class="modal-top">
+      <input class="m-title-input" type="text" id="m-title" placeholder="글 제목">
+      <select id="m-category">
+        <option value="whs">WHS</option>
+        <option value="blockchain">Blockchain</option>
+        <option value="cs">CS</option>
+        <option value="project">Project</option>
+      </select>
+      <input class="m-desc-input" type="text" id="m-desc" placeholder="한 줄 설명">
+    </div>
+
+    <div class="editor-area">
+      <div class="editor-pane">
+        <label>✏️ 마크다운 작성</label>
+        <textarea id="m-content" placeholder="# 제목&#10;&#10;내용을 입력하세요...&#10;&#10;**볼드** *이탤릭*&#10;&#10;```&#10;코드블록&#10;```" oninput="updatePreview()"></textarea>
+      </div>
+      <div class="preview-pane">
+        <label>👁 미리보기</label>
+        <div class="preview-box" id="m-preview"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-publish" onclick="publishPost()">🚀 발행하기</button>
+    </div>
+    <div class="modal-status" id="m-status"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-  function injectCategoryButtons() {
-    if (document.querySelector('.category-buttons')) return;
-    
+  const REPO = 'wonearth/JiwonKoo.github.io';
+
+  function injectUI() {
+    if (document.querySelector('.cat-buttons')) return;
     var target = document.querySelector('article') || document.querySelector('.page > .content');
     if (!target) return;
 
     var currentPath = window.location.pathname;
-    
     var buttons = [
       { label: 'All', href: '/JiwonKoo.github.io/' },
       { label: 'WHS', href: '/JiwonKoo.github.io/category/whs/' },
@@ -15,73 +97,136 @@
       { label: 'Project', href: '/JiwonKoo.github.io/category/project/' },
     ];
 
-    var div = document.createElement('div');
-    div.className = 'category-buttons';
-    div.style.cssText = 'text-align:center; padding: 0.8rem 0 1.2rem; margin-bottom: 1.5rem;';
-
-    var baseStyle = 'display:inline-block;padding:0.3rem 1rem;margin:0.2rem;border:1px solid #4FB1BA;border-radius:6px;text-decoration:none;font-size:0.9rem;cursor:pointer;';
-    var activeStyle = baseStyle + 'background:#4FB1BA;color:#fff;';
-    var inactiveStyle = baseStyle + 'background:transparent;color:#4FB1BA;';
-
+    var catDiv = document.createElement('div');
+    catDiv.className = 'cat-buttons';
     buttons.forEach(function(btn) {
       var isActive = (btn.href === '/JiwonKoo.github.io/' && currentPath === '/JiwonKoo.github.io/')
                   || (btn.href !== '/JiwonKoo.github.io/' && currentPath.startsWith(btn.href));
       var a = document.createElement('a');
       a.href = btn.href;
       a.textContent = btn.label;
-      a.style.cssText = isActive ? activeStyle : inactiveStyle;
-      div.appendChild(a);
+      a.className = 'cat-btn' + (isActive ? ' active' : '');
+      catDiv.appendChild(a);
     });
 
-    target.parentNode.insertBefore(div, target);
+    var writeBtn = document.createElement('button');
+    writeBtn.className = 'write-btn';
+    writeBtn.textContent = '✏️ 글쓰기';
+    writeBtn.onclick = openModal;
+
+    target.parentNode.insertBefore(writeBtn, target);
+    target.parentNode.insertBefore(catDiv, writeBtn);
+
+    var saved = localStorage.getItem('gh_token');
+    if (saved) document.getElementById('m-token').value = saved;
   }
 
-  document.addEventListener('DOMContentLoaded', injectCategoryButtons);
-  document.getElementById('_pushState') && document.getElementById('_pushState').addEventListener('hy-push-state-after', function() {
-    var old = document.querySelector('.category-buttons');
-    if (old) old.remove();
-    injectCategoryButtons();
+  function updatePreview() {
+    var content = document.getElementById('m-content').value;
+    document.getElementById('m-preview').innerHTML = marked.parse(content);
+  }
+
+  function openModal() { document.getElementById('writeModal').classList.add('open'); }
+  function closeModal() { document.getElementById('writeModal').classList.remove('open'); }
+  function toggleToken() {
+    var t = document.getElementById('m-token');
+    t.type = t.type === 'password' ? 'text' : 'password';
+  }
+
+  async function publishPost() {
+    var token = document.getElementById('m-token').value.trim();
+    var title = document.getElementById('m-title').value.trim();
+    var category = document.getElementById('m-category').value;
+    var desc = document.getElementById('m-desc').value.trim();
+    var content = document.getElementById('m-content').value.trim();
+
+    if (!token || !title || !content) {
+      showStatus('토큰, 제목, 내용은 필수예요!', 'error'); return;
+    }
+
+    localStorage.setItem('gh_token', token);
+
+    var date = new Date().toISOString().split('T')[0];
+    var slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    var filename = '_posts/' + date + '-' + slug + '.md';
+    var body = '---\nlayout: post\ntitle: ' + title + '\ndate: ' + date + '\ndescription: ' + desc + '\ncategories: [' + category + ']\n---\n\n' + content;
+    var encoded = btoa(unescape(encodeURIComponent(body)));
+
+    try {
+      var res = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + filename, {
+        method: 'PUT',
+        headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Add post: ' + title, content: encoded })
+      });
+
+      if (res.ok) {
+        showStatus('✅ 발행 완료! 1~2분 후 블로그에 반영돼요.', 'success');
+        document.getElementById('m-title').value = '';
+        document.getElementById('m-content').value = '';
+        document.getElementById('m-desc').value = '';
+        document.getElementById('m-preview').innerHTML = '';
+      } else {
+        var err = await res.json();
+        showStatus('❌ 오류: ' + err.message, 'error');
+      }
+    } catch(e) {
+      showStatus('❌ 네트워크 오류: ' + e.message, 'error');
+    }
+  }
+
+  function showStatus(msg, type) {
+    var el = document.getElementById('m-status');
+    el.textContent = msg;
+    el.className = 'modal-status ' + type;
+  }
+
+  document.addEventListener('DOMContentLoaded', injectUI);
+  var ps = document.getElementById('_pushState');
+  if (ps) ps.addEventListener('hy-push-state-after', function() {
+    var old = document.querySelector('.cat-buttons');
+    if (old) { old.nextSibling && old.nextSibling.remove(); old.remove(); }
+    injectUI();
   });
 </script>
-{% comment %}
+
 <!--
-Example code for using Matamo as alternative analytics solution.
+Code for integrating CloudFlare's email protection with Hydejack's single page app loading.
 -->
-{% if site.matomo_analytics %}
 <script>
-  var _paq = _paq || [];
-
-  /*{% if site.matomo_analytics.no_cookies %}*/
-  _paq.push(['disableCookies']);
-  /*{% endif %}*/
-
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  _paq.push(['setTrackerUrl', u+'piwik.php']);
-  _paq.push(['setSiteId', '{{site.matomo_analytics.site_id}}']);
-
-  var pushStateEl = document.getElementById('_pushState');
-  var timeStartLoadPage, referer, timeItTookToLoadPage;
-
-  pushStateEl.addEventListener('hy-push-state-start', function() {
-    timeStartLoadPage = new Date().getTime();
-    referer = window.location.toString();
+  document.getElementById('_pushState').addEventListener('hy-push-state-after', function (e) {
+    function e(e){
+      (console.error?console.error:console.log).call(console,e)
+    }
+    function t(e){
+      return l.innerHTML='<a href="'+e.replace(/"/g,"&quot;")+'"></a>',l.childNodes[0].getAttribute("href")
+    }
+    function r(e,t){
+      var r=e.substr(t,2);return parseInt(r,16)
+    }
+    function n(e,n){
+      for(var o="",c=r(e,n),a=n+2;a<e.length;a+=2){
+        var l=r(e,a)^c;
+        o+=String.fromCharCode(l)
+      }
+      return t(o)
+    }
+    var o="/cdn-cgi/l/email-protection#",
+        c=".__cf_email__",
+        a="data-cfemail",
+        l=document.createElement("div");
+    !function(){
+      for(var t=document.getElementsByTagName("a"),r=0;r<t.length;r++)
+        try{
+          var c=t[r],a=c.href.indexOf(o);
+          a>-1&&(c.href="mailto:"+n(c.href,a+o.length))
+        }catch(t){e(t)}
+    }(),
+    function(){
+      for(var t=document.querySelectorAll(c),r=0;r<t.length;r++)
+        try{
+          var o=t[r],l=n(o.getAttribute(a),0),i=document.createTextNode(l);
+          o.parentNode.replaceChild(i,o)
+        }catch(t){e(t)}
+    }()
   });
-
-  pushStateEl.addEventListener('hy-push-state-ready', function() {
-    timeItTookToLoadPage = new Date().getTime() - timeStartLoadPage;
-  });
-
-  pushStateEl.addEventListener('hy-push-state-after', function() {
-    _paq.push(['setReferrerUrl', referer]);
-    _paq.push(['setCustomUrl', window.location.toString()]);
-    _paq.push(['setDocumentTitle', document.title]);
-    _paq.push(['deleteCustomVariables', 'page']);
-    _paq.push(['setGenerationTimeMs', timeItTookToLoadPage]);
-    _paq.push(['trackPageView']);
-  });
-
-  window.loadJSDeferred('{{site.matomo_analytics.root}}piwik.js');
 </script>
-{% endif %}
-{% endcomment %}
