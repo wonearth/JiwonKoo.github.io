@@ -93,14 +93,16 @@
   });
 
   function injectUI() {
-    if (document.querySelector('.cat-buttons')) return;
-
-    var target = document.querySelector('article')
-              || document.querySelector('.page > .content')
-              || document.querySelector('.content')
-              || document.querySelector('#_main')
-              || document.querySelector('main');
-    if (!target) return;
+      if (window.location.pathname.includes('/about')) return;
+      if (document.querySelector('.cat-buttons')) return;
+  
+      var target = document.querySelector('article')
+                || document.querySelector('.page > .content')
+                || document.querySelector('.content')
+                || document.querySelector('#_main')
+                || document.querySelector('main');
+      if (!target) return;
+      ... (나머지 기존 코드 그대로)
 
     var currentPath = window.location.pathname;
     var buttons = [
@@ -181,7 +183,14 @@
     el.className = 'modal-status ' + type;
   }
 
-  document.addEventListener('DOMContentLoaded', injectUI);
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.pathname.includes('/about')) {
+        document.getElementById('floatWriteBtn').style.display = 'none';
+    } else {
+        injectUI();
+    }
+  });
+  
   var ps = document.getElementById('_pushState');
   if (ps) ps.addEventListener('hy-push-state-after', function() {
     var old = document.querySelector('.cat-buttons');
