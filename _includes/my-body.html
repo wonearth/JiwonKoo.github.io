@@ -101,11 +101,9 @@
   function checkToken() {
     var saved = localStorage.getItem('gh_token');
     var btn = document.getElementById('floatWriteBtn');
-    if (saved) {
-      btn.style.display = 'block';
-      document.getElementById('m-token').value = saved;
-    } else {
-      btn.style.display = 'none';
+    if (btn) {
+      btn.style.display = saved ? 'block' : 'none';
+      if (saved) document.getElementById('m-token').value = saved;
     }
   }
 
