@@ -1,15 +1,3 @@
----
-layout: blog
-title: Blog
-description: >
-  The official Hydejack blog. Version updates, example content and how-to guides on how to blog with Jekyll.
-last_modified_at: 2018-08-03
-no_link_title: false 
-no_excerpt: false 
-hide_image: false
-cover: true
----
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -33,7 +21,7 @@ cover: true
   <div id="token-section">
     <label>GitHub Personal Access Token</label>
     <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx">
-    <small>처음 한 번만 입력하면 브라우저에 저장돼요. <a href="https://github.com/settings/tokens/new?scopes=repo" target="_blank">토큰 발급받기</a></small>
+    <small>처음 한 번만 입력하면 브라우저에 저장돼요.</small>
     <br><br>
   </div>
 
@@ -81,18 +69,10 @@ cover: true
 
       var today = new Date();
       var date = today.toISOString().split('T')[0];
-      var slug = title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '-').replace(/-+/g, '-');
-      var filename = '_posts/' + date + '-' + encodeURIComponent(slug) + '.md';
+      var slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+      var filename = '_posts/' + date + '-' + slug + '.md';
 
-      var frontmatter = `---
-layout: post
-title: ${title}
-date: ${date}
-description: ${description}
-categories: [${category}]
----
-
-${content}`;
+      var frontmatter = `---\nlayout: post\ntitle: ${title}\ndate: ${date}\ndescription: ${description}\ncategories: [${category}]\n---\n\n${content}`;
 
       var encoded = btoa(unescape(encodeURIComponent(frontmatter)));
 
