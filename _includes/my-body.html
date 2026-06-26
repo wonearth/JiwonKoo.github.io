@@ -2,8 +2,8 @@
   .cat-buttons { text-align:center; padding: 0.8rem 0 1.2rem; margin-bottom: 1.5rem; }
   .cat-btn { display:inline-block; padding:0.3rem 1rem; margin:0.2rem; border:1px solid #4FB1BA; border-radius:6px; text-decoration:none; font-size:0.9rem; cursor:pointer; background:transparent; color:#4FB1BA; }
   .cat-btn.active { background:#4FB1BA; color:#fff; }
-  .float-write-btn { position:fixed; bottom:2rem; right:2rem; z-index:1000; background:#4FB1BA; color:#fff; border:none; border-radius:50px; padding:0.8rem 1.4rem; font-size:1rem; cursor:pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display:block; }
-  .float-write-btn:hover { background:#3a9aa3; transform:scale(1.05); }
+  .float-write-btn { position:fixed; bottom:2rem; right:2rem; z-index:1000; background:#4FB1BA; color:#fff; border:none; border-radius:50px; padding:0.8rem 1.4rem; font-size:1rem; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  .float-write-btn:hover { background:#3a9aa3; }
   .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; }
   .modal-overlay.open { display:flex; align-items:center; justify-content:center; }
   .modal { background:#fff; border-radius:12px; padding:2rem; width:95%; max-width:1100px; height:90vh; display:flex; flex-direction:column; }
@@ -74,152 +74,171 @@
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-  const REPO = 'wonearth/JiwonKoo.github.io';
+var REPO = 'wonearth/JiwonKoo.github.io';
 
-  document.getElementById('writeModal').addEventListener('keydown', function(e) {
-    e.stopPropagation();
-  });
+document.getElementById('writeModal').addEventListener('keydown', function(e) {
+  e.stopPropagation();
+});
 
-  document.getElementById('m-content').addEventListener('input', function() {
+document.getElementById('m-content').addEventListener('input', function() {
+  if (typeof marked !== 'undefined') {
     document.getElementById('m-preview').innerHTML = marked.parse(this.value);
+  }
+});
+
+function openModal() {
+  document.getElementById('writeModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('writeModal').classList.remove('open');
+}
+
+function toggleToken() {
+  var t = document.getElementById('m-token');
+  t.type = t.type === 'password' ? 'text' : 'password';
+}
+
+function hidePoweredBy() {
+  setTimeout(function() {
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    var node;
+    while (node = walker.nextNode()) {
+      if (node.nodeValue && (node.nodeValue.indexOf('Powered by') !== -1 || node.nodeValue.indexOf('Hydejack') !== -1)) {
+        var el = node.parentElement;
+        while (el && el !== document.body) {
+          if (el.tagName === 'P' || el.tagName === 'LI' || el.tagName === 'A') {
+            el.style.display = 'none';
+            break;
+          }
+          el = el.parentElement;
+        }
+      }
+    }
+  }, 500);
+}
+
+function injectCategories() {
+  if (document.querySelector('.cat-buttons')) return;
+  var target = document.querySelector('article')
+            || document.querySelector('.page > .content')
+            || document.querySelector('.content')
+            || document.querySelector('main');
+  if (!target) return;
+
+  var currentPath = window.location.pathname;
+  var buttons = [
+    { label: 'All', href: '/JiwonKoo.github.io/' },
+    { label: 'WHS', href: '/JiwonKoo.github.io/category/whs/' },
+    { label: 'Blockchain', href: '/JiwonKoo.github.io/category/blockchain/' },
+    { label: 'CS', href: '/JiwonKoo.github.io/category/cs/' },
+    { label: 'Project', href: '/JiwonKoo.github.io/category/project/' }
+  ];
+
+  var catDiv = document.createElement('div');
+  catDiv.className = 'cat-buttons';
+  buttons.forEach(function(btn) {
+    var isActive = (btn.href === '/JiwonKoo.github.io/' && currentPath === '/JiwonKoo.github.io/')
+                || (btn.href !== '/JiwonKoo.github.io/' && currentPath.indexOf(btn.href) === 0);
+    var a = document.createElement('a');
+    a.href = btn.href;
+    a.textContent = btn.label;
+    a.className = 'cat-btn' + (isActive ? ' active' : '');
+    catDiv.appendChild(a);
   });
 
-  function hideHydejack() {
-    document.querySelectorAll('a, p').forEach(function(el) {
-      if (el.textContent.includes('Hydejack')) {
-        el.style.display = 'none';
-      }
+  target.parentNode.insertBefore(catDiv, target);
+
+  var saved = localStorage.getItem('gh_token');
+  if (saved) document.getElementById('m-token').value = saved;
+}
+
+function handlePage() {
+  var path = window.location.pathname;
+  var isAbout = path.indexOf('/about') !== -1;
+  var btn = document.getElementById('floatWriteBtn');
+
+  if (btn) btn.style.display = isAbout ? 'none' : 'block';
+
+  hidePoweredBy();
+
+  if (!isAbout) {
+    injectCategories();
+  } else {
+    var old = document.querySelector('.cat-buttons');
+    if (old) old.remove();
+  }
+}
+
+async function publishPost() {
+  var token = document.getElementById('m-token').value.trim();
+  var title = document.getElementById('m-title').value.trim();
+  var category = document.getElementById('m-category').value;
+  var desc = document.getElementById('m-desc').value.trim();
+  var content = document.getElementById('m-content').value.trim();
+
+  if (!token || !title || !content) {
+    showStatus('토큰, 제목, 내용은 필수예요!', 'error');
+    return;
+  }
+  localStorage.setItem('gh_token', token);
+
+  var date = new Date().toISOString().split('T')[0];
+  var slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  var filename = '_posts/' + date + '-' + slug + '.md';
+  var body = '---\nlayout: post\ntitle: ' + title + '\ndate: ' + date + '\ndescription: ' + desc + '\ncategories: [' + category + ']\n---\n\n' + content;
+  var encoded = btoa(unescape(encodeURIComponent(body)));
+
+  try {
+    var res = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + filename, {
+      method: 'PUT',
+      headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Add post: ' + title, content: encoded })
     });
-    // hr 구분선도 제거 (Powered by 앞뒤에 있는 것)
-    var hrs = document.querySelectorAll('hr');
-    hrs.forEach(function(hr) {
-      var next = hr.nextElementSibling;
-      if (next && next.textContent.includes('Hydejack')) {
-        hr.style.display = 'none';
-      }
-    });
-  }
-
-  function injectUI() {
-    if (document.querySelector('.cat-buttons')) return;
-    var target = document.querySelector('article')
-              || document.querySelector('.page > .content')
-              || document.querySelector('.content')
-              || document.querySelector('#_main')
-              || document.querySelector('main');
-    if (!target) return;
-
-    var currentPath = window.location.pathname;
-    var buttons = [
-      { label: 'All', href: '/JiwonKoo.github.io/' },
-      { label: 'WHS', href: '/JiwonKoo.github.io/category/whs/' },
-      { label: 'Blockchain', href: '/JiwonKoo.github.io/category/blockchain/' },
-      { label: 'CS', href: '/JiwonKoo.github.io/category/cs/' },
-      { label: 'Project', href: '/JiwonKoo.github.io/category/project/' },
-    ];
-
-    var catDiv = document.createElement('div');
-    catDiv.className = 'cat-buttons';
-    buttons.forEach(function(btn) {
-      var isActive = (btn.href === '/JiwonKoo.github.io/' && currentPath === '/JiwonKoo.github.io/')
-                  || (btn.href !== '/JiwonKoo.github.io/' && currentPath.startsWith(btn.href));
-      var a = document.createElement('a');
-      a.href = btn.href;
-      a.textContent = btn.label;
-      a.className = 'cat-btn' + (isActive ? ' active' : '');
-      catDiv.appendChild(a);
-    });
-
-    target.parentNode.insertBefore(catDiv, target);
-
-    var saved = localStorage.getItem('gh_token');
-    if (saved) document.getElementById('m-token').value = saved;
-  }
-
-  function handlePage() {
-    var isAbout = window.location.pathname.indexOf('/about') !== -1;
-    var btn = document.getElementById('floatWriteBtn');
-    if (btn) btn.style.display = isAbout ? 'none' : 'block';
-
-    // 딜레이 주어서 동적 컨텐츠 로드 후 실행
-    setTimeout(function() {
-      hideHydejack();
-      if (!isAbout) injectUI();
-    }, 300);
-  }
-
-  function openModal() { document.getElementById('writeModal').classList.add('open'); }
-  function closeModal() { document.getElementById('writeModal').classList.remove('open'); }
-  function toggleToken() {
-    var t = document.getElementById('m-token');
-    t.type = t.type === 'password' ? 'text' : 'password';
-  }
-
-  async function publishPost() {
-    var token = document.getElementById('m-token').value.trim();
-    var title = document.getElementById('m-title').value.trim();
-    var category = document.getElementById('m-category').value;
-    var desc = document.getElementById('m-desc').value.trim();
-    var content = document.getElementById('m-content').value.trim();
-
-    if (!token || !title || !content) {
-      showStatus('토큰, 제목, 내용은 필수예요!', 'error'); return;
+    if (res.ok) {
+      showStatus('✅ 발행 완료! 1~2분 후 블로그에 반영돼요.', 'success');
+      document.getElementById('m-title').value = '';
+      document.getElementById('m-content').value = '';
+      document.getElementById('m-desc').value = '';
+      document.getElementById('m-preview').innerHTML = '';
+    } else {
+      var err = await res.json();
+      showStatus('❌ 오류: ' + err.message, 'error');
     }
-    localStorage.setItem('gh_token', token);
-
-    var date = new Date().toISOString().split('T')[0];
-    var slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
-    var filename = '_posts/' + date + '-' + slug + '.md';
-    var body = '---\nlayout: post\ntitle: ' + title + '\ndate: ' + date + '\ndescription: ' + desc + '\ncategories: [' + category + ']\n---\n\n' + content;
-    var encoded = btoa(unescape(encodeURIComponent(body)));
-
-    try {
-      var res = await fetch('https://api.github.com/repos/' + REPO + '/contents/' + filename, {
-        method: 'PUT',
-        headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: 'Add post: ' + title, content: encoded })
-      });
-      if (res.ok) {
-        showStatus('✅ 발행 완료! 1~2분 후 블로그에 반영돼요.', 'success');
-        document.getElementById('m-title').value = '';
-        document.getElementById('m-content').value = '';
-        document.getElementById('m-desc').value = '';
-        document.getElementById('m-preview').innerHTML = '';
-      } else {
-        var err = await res.json();
-        showStatus('❌ 오류: ' + err.message, 'error');
-      }
-    } catch(e) {
-      showStatus('❌ 네트워크 오류: ' + e.message, 'error');
-    }
+  } catch(e) {
+    showStatus('❌ 네트워크 오류: ' + e.message, 'error');
   }
+}
 
-  function showStatus(msg, type) {
-    var el = document.getElementById('m-status');
-    el.textContent = msg;
-    el.className = 'modal-status ' + type;
-  }
+function showStatus(msg, type) {
+  var el = document.getElementById('m-status');
+  el.textContent = msg;
+  el.className = 'modal-status ' + type;
+}
 
-  document.addEventListener('DOMContentLoaded', handlePage);
-  var ps = document.getElementById('_pushState');
-  if (ps) ps.addEventListener('hy-push-state-after', function() {
+document.addEventListener('DOMContentLoaded', handlePage);
+
+var ps = document.getElementById('_pushState');
+if (ps) {
+  ps.addEventListener('hy-push-state-after', function() {
     var old = document.querySelector('.cat-buttons');
     if (old) old.remove();
     handlePage();
   });
+}
 </script>
 
 <!--
 Code for integrating CloudFlare's email protection with Hydejack's single page app loading.
 -->
 <script>
-  document.getElementById('_pushState').addEventListener('hy-push-state-after', function (e) {
-    function e(e){ (console.error?console.error:console.log).call(console,e) }
+  document.getElementById('_pushState').addEventListener('hy-push-state-after', function(e) {
+    function ee(e){ (console.error?console.error:console.log).call(console,e) }
     function t(e){ return l.innerHTML='<a href="'+e.replace(/"/g,"&quot;")+'"></a>',l.childNodes[0].getAttribute("href") }
     function r(e,t){ var r=e.substr(t,2);return parseInt(r,16) }
     function n(e,n){ for(var o="",c=r(e,n),a=n+2;a<e.length;a+=2){ var l=r(e,a)^c; o+=String.fromCharCode(l) } return t(o) }
     var o="/cdn-cgi/l/email-protection#", c=".__cf_email__", a="data-cfemail", l=document.createElement("div");
-    !function(){ for(var t=document.getElementsByTagName("a"),r=0;r<t.length;r++) try{ var c=t[r],a=c.href.indexOf(o); a>-1&&(c.href="mailto:"+n(c.href,a+o.length)) }catch(t){e(t)} }(),
-    function(){ for(var t=document.querySelectorAll(c),r=0;r<t.length;r++) try{ var o=t[r],l=n(o.getAttribute(a),0),i=document.createTextNode(l); o.parentNode.replaceChild(i,o) }catch(t){e(t)} }()
+    !function(){ for(var t=document.getElementsByTagName("a"),r=0;r<t.length;r++) try{ var c=t[r],a=c.href.indexOf(o); a>-1&&(c.href="mailto:"+n(c.href,a+o.length)) }catch(t){ee(t)} }();
+    !function(){ for(var t=document.querySelectorAll(c),r=0;r<t.length;r++) try{ var o=t[r],l=n(o.getAttribute(a),0),i=document.createTextNode(l); o.parentNode.replaceChild(i,o) }catch(t){ee(t)} }();
   });
 </script>
