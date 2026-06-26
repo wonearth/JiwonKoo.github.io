@@ -2,8 +2,15 @@
   .cat-buttons { text-align:center; padding: 0.8rem 0 1.2rem; margin-bottom: 1.5rem; }
   .cat-btn { display:inline-block; padding:0.3rem 1rem; margin:0.2rem; border:1px solid #4FB1BA; border-radius:6px; text-decoration:none; font-size:0.9rem; cursor:pointer; background:transparent; color:#4FB1BA; }
   .cat-btn.active { background:#4FB1BA; color:#fff; }
-  .write-btn { display:block; margin: 0 auto 2rem; padding: 0.5rem 1.5rem; background:#4FB1BA; color:#fff; border:none; border-radius:6px; font-size:1rem; cursor:pointer; }
-  .write-btn:hover { background:#3a9aa3; }
+
+  .float-write-btn {
+    position:fixed; bottom:2rem; right:2rem; z-index:1000;
+    background:#4FB1BA; color:#fff; border:none; border-radius:50px;
+    padding:0.8rem 1.4rem; font-size:1rem; cursor:pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display:none;
+  }
+  .float-write-btn:hover { background:#3a9aa3; transform:scale(1.05); }
 
   .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; }
   .modal-overlay.open { display:flex; align-items:center; justify-content:center; }
@@ -40,6 +47,8 @@
   .modal-status.error { background:#f8d7da; color:#721c24; display:block; }
 </style>
 
+<button class="float-write-btn" id="floatWriteBtn" onclick="openModal()">✏️ 글쓰기</button>
+
 <div class="modal-overlay" id="writeModal">
   <div class="modal">
     <h2>✍️ 새 글 쓰기</h2>
@@ -63,7 +72,7 @@
     <div class="editor-area">
       <div class="editor-pane">
         <label>✏️ 마크다운 작성</label>
-        <textarea id="m-content" placeholder="# 제목&#10;&#10;내용을 입력하세요...&#10;&#10;**볼드** *이탤릭*&#10;&#10;```&#10;코드블록&#10;```" oninput="updatePreview()"></textarea>
+        <textarea id="m-content" placeholder="# 제목&#10;&#10;내용을 입력하세요...&#10;&#10;**볼드** *이탤릭*&#10;&#10;```&#10;코드블록&#10;```"></textarea>
       </div>
       <div class="preview-pane">
         <label>👁 미리보기</label>
@@ -82,6 +91,23 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
   const REPO = 'wonearth/JiwonKoo.github.io';
+
+  // 키보드 이벤트 가로채기 방지
+  document.getElementById('writeModal').addEventListener('keydown', function(e) {
+    e.stopPropagation();
+  });
+
+  // 토큰 있을 때만 버튼 표시
+  function checkToken() {
+    var saved = localStorage.getItem('gh_token');
+    var btn = document.getElementById('floatWriteBtn');
+    if (saved) {
+      btn.style.display = 'block';
+      document.getElementById('m-token').value = saved;
+    } else {
+      btn.style.display = 'none';
+    }
+  }
 
   function injectUI() {
     if (document.querySelector('.cat-buttons')) return;
@@ -109,22 +135,13 @@
       catDiv.appendChild(a);
     });
 
-    var writeBtn = document.createElement('button');
-    writeBtn.className = 'write-btn';
-    writeBtn.textContent = '✏️ 글쓰기';
-    writeBtn.onclick = openModal;
-
-    target.parentNode.insertBefore(writeBtn, target);
-    target.parentNode.insertBefore(catDiv, writeBtn);
-
-    var saved = localStorage.getItem('gh_token');
-    if (saved) document.getElementById('m-token').value = saved;
+    target.parentNode.insertBefore(catDiv, target);
+    checkToken();
   }
 
-  function updatePreview() {
-    var content = document.getElementById('m-content').value;
-    document.getElementById('m-preview').innerHTML = marked.parse(content);
-  }
+  document.getElementById('m-content').addEventListener('input', function() {
+    document.getElementById('m-preview').innerHTML = marked.parse(this.value);
+  });
 
   function openModal() { document.getElementById('writeModal').classList.add('open'); }
   function closeModal() { document.getElementById('writeModal').classList.remove('open'); }
@@ -145,6 +162,7 @@
     }
 
     localStorage.setItem('gh_token', token);
+    checkToken();
 
     var date = new Date().toISOString().split('T')[0];
     var slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
@@ -184,7 +202,7 @@
   var ps = document.getElementById('_pushState');
   if (ps) ps.addEventListener('hy-push-state-after', function() {
     var old = document.querySelector('.cat-buttons');
-    if (old) { old.nextSibling && old.nextSibling.remove(); old.remove(); }
+    if (old) old.remove();
     injectUI();
   });
 </script>
@@ -194,39 +212,12 @@ Code for integrating CloudFlare's email protection with Hydejack's single page a
 -->
 <script>
   document.getElementById('_pushState').addEventListener('hy-push-state-after', function (e) {
-    function e(e){
-      (console.error?console.error:console.log).call(console,e)
-    }
-    function t(e){
-      return l.innerHTML='<a href="'+e.replace(/"/g,"&quot;")+'"></a>',l.childNodes[0].getAttribute("href")
-    }
-    function r(e,t){
-      var r=e.substr(t,2);return parseInt(r,16)
-    }
-    function n(e,n){
-      for(var o="",c=r(e,n),a=n+2;a<e.length;a+=2){
-        var l=r(e,a)^c;
-        o+=String.fromCharCode(l)
-      }
-      return t(o)
-    }
-    var o="/cdn-cgi/l/email-protection#",
-        c=".__cf_email__",
-        a="data-cfemail",
-        l=document.createElement("div");
-    !function(){
-      for(var t=document.getElementsByTagName("a"),r=0;r<t.length;r++)
-        try{
-          var c=t[r],a=c.href.indexOf(o);
-          a>-1&&(c.href="mailto:"+n(c.href,a+o.length))
-        }catch(t){e(t)}
-    }(),
-    function(){
-      for(var t=document.querySelectorAll(c),r=0;r<t.length;r++)
-        try{
-          var o=t[r],l=n(o.getAttribute(a),0),i=document.createTextNode(l);
-          o.parentNode.replaceChild(i,o)
-        }catch(t){e(t)}
-    }()
+    function e(e){ (console.error?console.error:console.log).call(console,e) }
+    function t(e){ return l.innerHTML='<a href="'+e.replace(/"/g,"&quot;")+'"></a>',l.childNodes[0].getAttribute("href") }
+    function r(e,t){ var r=e.substr(t,2);return parseInt(r,16) }
+    function n(e,n){ for(var o="",c=r(e,n),a=n+2;a<e.length;a+=2){ var l=r(e,a)^c; o+=String.fromCharCode(l) } return t(o) }
+    var o="/cdn-cgi/l/email-protection#", c=".__cf_email__", a="data-cfemail", l=document.createElement("div");
+    !function(){ for(var t=document.getElementsByTagName("a"),r=0;r<t.length;r++) try{ var c=t[r],a=c.href.indexOf(o); a>-1&&(c.href="mailto:"+n(c.href,a+o.length)) }catch(t){e(t)} }(),
+    function(){ for(var t=document.querySelectorAll(c),r=0;r<t.length;r++) try{ var o=t[r],l=n(o.getAttribute(a),0),i=document.createTextNode(l); o.parentNode.replaceChild(i,o) }catch(t){e(t)} }()
   });
 </script>
